@@ -6,7 +6,12 @@ import datetime
 import csv
 import ckan.logic as logic
 from collections import namedtuple
-from ckan.cli import error_shout
+
+from ckan.lib.search.index import NoopSearchIndex, PackageSearchIndex
+
+_INDICES = {
+    'package': PackageSearchIndex
+}
 
 _ViewCount = namedtuple(u'ViewCount', u'id name count')
 
@@ -208,19 +213,29 @@ def update_tracking_solr(engine, start_date):
     )
 
     from ckan.lib.search import rebuild
-    for package_id in package_ids:
-        try:
-            rebuild(package_id)
-        except logic.NotFound:
-            click.echo(u'Error: package {} not found.'.format(package_id))
-            not_found += 1
-        except KeyboardInterrupt:
-            click.echo(u'Stopped.')
-            return
-        except Exception as e:
-            error_shout(e)
-    click.echo(
-        u'search index rebuilding done.' + (
-            u' {} not found.'.format(not_found) if not_found else u''
-        )
-    )
+    package_index = index_for(model.Package)
+    click.echo(u'rebuilding indexes ..... ... .')
+    try:
+        rebuild(package_ids=package_ids, defer_commit=True)
+    except KeyboardInterrupt:
+        click.echo(u'Stopped.')
+        return
+    package_index.commit()
+
+def _normalize_type(_type):
+    if isinstance(_type, model.domain_object.DomainObject):
+        _type = _type.__class__
+    if isinstance(_type, type):
+        _type = _type.__name__
+    return _type.strip().lower()
+
+
+def index_for(_type):
+    """ Get a SearchIndex instance sub-class suitable for
+        the specified type. """
+    try:
+        _type_n = _normalize_type(_type)
+        return _INDICES[_type_n]()
+    except KeyError:
+        click.echo("Unknown search type: %s" % _type)
+        return NoopSearchIndex()

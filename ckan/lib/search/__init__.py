@@ -163,11 +163,12 @@ def rebuild(package_id=None, only_missing=False, force=False, refresh=False,
         package_index.remove_dict(pkg_dict)
         package_index.insert_dict(pkg_dict)
     elif package_ids is not None:
+        conn = make_connection
         for package_id in package_ids:
             pkg_dict = logic.get_action('package_show')(context,
                 {'id': package_id})
             log.info('Indexing just package %r...', pkg_dict['name'])
-            package_index.update_dict(pkg_dict, True)
+            package_index.update_dict(pkg_dict, True, conn)
     else:
         package_ids = [r[0] for r in model.Session.query(model.Package.id).
                        filter(model.Package.state != 'deleted').all()]
@@ -189,6 +190,7 @@ def rebuild(package_id=None, only_missing=False, force=False, refresh=False,
                 package_index.clear()
 
         total_packages = len(package_ids)
+        conn = make_connection
         for counter, pkg_id in enumerate(package_ids):
             if not quiet:
                 sys.stdout.write(
@@ -201,7 +203,8 @@ def rebuild(package_id=None, only_missing=False, force=False, refresh=False,
                     logic.get_action('package_show')(context,
                         {'id': pkg_id}
                     ),
-                    defer_commit
+                    defer_commit,
+                    conn
                 )
             except Exception as e:
                 log.error(u'Error while indexing dataset %s: %s' %

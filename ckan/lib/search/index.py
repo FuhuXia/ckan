@@ -105,10 +105,10 @@ class PackageSearchIndex(SearchIndex):
     def remove_dict(self, pkg_dict):
         self.delete_package(pkg_dict)
 
-    def update_dict(self, pkg_dict, defer_commit=False):
-        self.index_package(pkg_dict, defer_commit)
+    def update_dict(self, pkg_dict, defer_commit=False, conn=None):
+        self.index_package(pkg_dict, defer_commit, conn=None)
 
-    def index_package(self, pkg_dict, defer_commit=False):
+    def index_package(self, pkg_dict, defer_commit=False, conn=None):
         if pkg_dict is None:
             return
 
@@ -297,7 +297,8 @@ class PackageSearchIndex(SearchIndex):
 
         # send to solr:
         try:
-            conn = make_connection()
+            if not conn:
+                conn = make_connection()
             commit = not defer_commit
             if not asbool(config.get('ckan.search.solr_commit', 'true')):
                 commit = False

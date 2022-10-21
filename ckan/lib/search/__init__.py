@@ -184,7 +184,7 @@ def rebuild(package_id=None, only_missing=False, force=False, refresh=False,
                 log.info('All datasets are already indexed')
                 return
         else:
-            log.info('Rebuilding the whole index...')
+            log.info('Rebuilding the whole index......')
             # When refreshing, the index is not previously cleared
             if not refresh:
                 package_index.clear()

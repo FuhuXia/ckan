@@ -299,10 +299,12 @@ class PackageSearchIndex(SearchIndex):
         try:
             if not conn:
                 conn = make_connection()
+            else:
+                log.error("reuse conn")
             commit = not defer_commit
             if not asbool(config.get('ckan.search.solr_commit', 'true')):
                 commit = False
-            conn.add(docs=[pkg_dict], commit=commit)
+            conn.add(docs=[pkg_dict], commit=False)
         except pysolr.SolrError as e:
             msg = 'Solr returned an error: {0}'.format(
                 e.args[0][:1000] # limit huge responses

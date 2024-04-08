@@ -308,8 +308,8 @@ class PackageSearchIndex(SearchIndex):
             with open("/tmp/output.txt", "a") as f:
                 f.write(f'\n\n*************{t}***********************\n')
                 f.write(f'commit: {commit}\n')
-                pkg_dict = pprint.pformat(pkg_dict)
-                f.write(f'pkg_dict: {pkg_dict}')
+                pkg_dict_pp = pprint.pformat(pkg_dict)
+                f.write(f'pkg_dict: {pkg_dict_pp}')
 
             conn.add(docs=[pkg_dict], commit=commit)
         except pysolr.SolrError as e:

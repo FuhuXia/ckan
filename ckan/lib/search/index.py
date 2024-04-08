@@ -299,6 +299,18 @@ class PackageSearchIndex(SearchIndex):
             commit = not defer_commit
             if not config.get('ckan.search.solr_commit'):
                 commit = False
+
+            import datetime
+            import pprint
+            t = datetime.datetime.now().replace(microsecond=0).isoformat()
+            # 2020-03-20T14:30:43
+
+            with open("/tmp/output.txt", "a") as f:
+                f.write(f'\n\n*************{t}***********************\n')
+                f.write(f'commit: {commit}\n')
+                pkg_dict = pprint.pformat(pkg_dict)
+                f.write(f'pkg_dict: {pkg_dict}')
+
             conn.add(docs=[pkg_dict], commit=commit)
         except pysolr.SolrError as e:
             msg = 'Solr returned an error: {0}'.format(
